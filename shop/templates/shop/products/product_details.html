@@ -1,0 +1,218 @@
+{% extends 'shop/layouts/main.html' %}
+{% block title %}
+shopping zone | online shopping
+{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5" style="min-height:600px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">{{ products }} Details </h4>
+                <hr style="border-color:#b8bfc2;">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'collections' products.category.name %}">Collections</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{products}}</li>
+                    </ol>
+                </nav>
+                {% include 'shop/inc/message.html' %}
+            </div>
+            <div class="col-4 my-3 pic-box">
+                {% if products.trending %}
+                <div class="Hot">Hot</div>
+                {% endif %}
+                <img src="{{products.product_image.url}}" class="card-image-top" alt="{{products}}" style="width:225px; height:225px; object-fit:cover;">
+            </div>
+            <div class="col-8 my-3">
+                <h5 class="text-success">{{products | upper}}</h5>
+                <p>{{products.vendor}}</p>
+                <p>{{products.description}}</p>
+                <h6 class="my-2 text-danger">Current Price: Rs. <s>{{products.original_price}}</s></h6>
+                <h5 class="my-2 text-primary">Offer Price : Rs.{{products.selling_price}}</h5>
+                <div class="my-3">
+                    {% if products.quantity > 0 %}
+                    <input type="hidden" value="{{products.id}}" id="pid">
+                    <p>
+                        <div class="input-group" style="width:150px">
+                            <button class="input-group-text bg-success text-light" id="btnMinus"><i class="fa fa-minus"></i></button>
+                            <input type="text" name="qty" id="txtQty" value="1" class="form-control text-center">
+                            <button class="input-group-text bg-success text-light" id="btnPlus"><i class="fa fa-plus"></i></button>
+                        </div>
+                    </p>
+                    <button class="btn btn-primary" id="btnCart"><i class="fa fa-shopping-cart"></i> Add to Cart</button>
+                    <button class="btn btn-success" id="btnPlaceOrder"><i class="fa fa-bolt"></i> Place Order</button>
+                    <button class="btn btn-warning" id="btnCheckout"><i class="fa fa-credit-card"></i> Checkout</button>
+                    <button class="btn btn-info" id="btnVoice"><i class="fa fa-microphone"></i> Voice Command</button>
+                    <p id="voiceResult" style="margin-top: 10px;"></p>
+                    {% else %}
+                    <button class="btn btn-secondary"><i class="fa fa-minus"></i> Out of Stock</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function(event) {
+    const btnPlus = document.getElementById("btnPlus");
+    const btnMinus = document.getElementById("btnMinus");
+    const txtQty = document.getElementById("txtQty");
+    const pid = document.getElementById("pid");
+    const btnCart = document.getElementById("btnCart");
+    const btnPlaceOrder = document.getElementById("btnPlaceOrder"); // Place Order button
+    const btnCheckout = document.getElementById("btnCheckout"); // Checkout button
+    const btnVoice = document.getElementById("btnVoice"); // Voice Command button
+    const voiceResult = document.getElementById("voiceResult");
+
+    btnPlus.addEventListener("click", function() {
+        let qty = parseInt(txtQty.value, 10);
+        qty = isNaN(qty) ? 0 : qty;
+        if (qty < 10) {
+            qty++;
+            txtQty.value = qty;
+        }
+    });
+
+    btnMinus.addEventListener("click", function() {
+        let qty = parseInt(txtQty.value, 10);
+        qty = isNaN(qty) ? 0 : qty;
+        if (qty > 1) {
+            qty--;
+            txtQty.value = qty;
+        }
+    });
+
+    btnCart.addEventListener("click", function() {
+        let qty = parseInt(txtQty.value, 10);
+        qty = isNaN(qty) ? 0 : qty;
+
+        if (qty > 0) {
+            let postObj = {
+                product_qty: qty,
+                pid: pid.value,
+            }
+            console.log(postObj);
+            fetch("/addtocart", {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(postObj)
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                console.log(data);
+                alert(data['status']);
+            });
+        } else {
+            alert("Please Enter The quantity");
+        }
+    });
+
+    btnPlaceOrder.addEventListener("click", function() { // Place Order button click handler
+        let qty = parseInt(txtQty.value, 10);
+        qty = isNaN(qty) ? 0 : qty;
+
+        if (qty > 0) {
+            let postObj = {
+                product_qty: qty,
+                pid: pid.value,
+            }
+            console.log(postObj);
+            fetch("{% url 'placeorder' %}", { // Correct URL name
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(postObj)
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                console.log(data);
+                if (data['status'] === 'Order Placed') {
+                    window.location.href = '/order-summary';
+                } else {
+                    alert(data['status']);
+                }
+            });
+        } else {
+            alert("Please Enter The quantity");
+        }
+    });
+
+    btnCheckout.addEventListener("click", function() { // Checkout button click handler
+        let qty = parseInt(txtQty.value, 10);
+        qty = isNaN(qty) ? 0 : qty;
+
+        if (qty > 0) {
+            let postObj = {
+                product_qty: qty,
+                pid: pid.value,
+            }
+            console.log(postObj);
+            fetch("/create-checkout-session", {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(postObj)
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                return stripe.redirectToCheckout({ sessionId: data.id });
+            }).then(result => {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            alert("Please Enter The quantity");
+        }
+    });
+
+    // Voice recognition
+    btnVoice.addEventListener("click", function() {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.start();
+
+        recognition.onresult = function(event) {
+            const voiceCommand = event.results[0][0].transcript.toLowerCase();
+            voiceResult.textContent = 'Voice Command: ' + voiceCommand;
+
+            if (voiceCommand.includes('add to cart')) {
+                btnCart.click();
+            } else if (voiceCommand.includes('place order')) {
+                btnPlaceOrder.click();
+            } else if (voiceCommand.includes('checkout')) {
+                btnCheckout.click();
+            } else {
+                alert('Command not recognized. Please say "add to cart", "place order", or "checkout".');
+            }
+        };
+
+        recognition.onerror = function(event) {
+            alert('Error occurred in recognition: ' + event.error);
+        };
+    });
+});
+</script>
+{% endblock content %}

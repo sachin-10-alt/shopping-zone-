@@ -1,0 +1,38 @@
+{% extends 'shop/layouts/main.html' %}
+
+{% block title %}
+Order Summary | Online Shopping
+{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5" style="min-height:600px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">Order Summary</h4>
+                <hr style="border-color:#b8bfc2;">
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Order Date</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.product.name }}</td>
+                        <td>{{ order.product_qty }}</td>
+                        <td>{{ order.order_date }}</td>
+                        <td><a href="{% url 'remove_order' order.id %}" onclick="return confirm('Are you sure you want to remove this order?')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Remove</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock content %}
