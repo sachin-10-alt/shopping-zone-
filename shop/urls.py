@@ -1,4 +1,5 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import  path
 from . import views
 
 urlpatterns = [
@@ -14,10 +15,8 @@ urlpatterns = [
     path('addtocart', views.add_to_cart, name="addtocart"),
     path('placeorder', views.place_order, name="placeorder"),
     path('order-summary', views.order_summary, name="order_summary"),
-    path('remove_order/<int:oid>', views.remove_order, name="remove_order"),  # URL pattern for removing order
+    path('remove_order/<int:oid>', views.remove_order, name="remove_order"),
     path('buynow', views.buy_now, name="buynow"),
+    path('search/', views.search, name='search'),
+    path('admin/', admin.site.urls),
 ]
-
-
-
- 

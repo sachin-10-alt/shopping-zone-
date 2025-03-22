@@ -1,6 +1,6 @@
 
-
-
+from django.db.models import Q
+from .models import Product
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
@@ -171,6 +171,21 @@ def product_details(request,cname,pname):
      else:
         messages.error (request, "No Such Catagory Found")
         return redirect('collections')
-    
-    
+     
+def search(request):
+    query = request.GET.get('query')
+    if query:
+        # Use Q objects to search in multiple fields
+        results = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query) | Q(category__icontains=query)
+        )
+    else:
+        results = Product.objects.all()
+    return render(request, 'search_results.html', {'results': results, 'query': query})
+
+def autocomplete(request):
+    query = request.GET.get('term', '')
+    products = Product.objects.filter(name__icontains=query)[:10]  # Limit to 10 results
+    results = [product.name for product in products]
+    return JsonResponse(results, safe=False)
     

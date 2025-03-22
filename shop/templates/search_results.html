@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results for "{{ query }}"</h1>
+    <ul>
+        {% for product in results %}
+            <li>
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.description }}</p>
+                <p>Price: ${{ product.price }}</p>
+                <p>Category: {{ product.category }}</p>
+            </li>
+        {% empty %}
+            <p>No results found.</p>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'search' %}">Back to Search</a>
+</body>
+</html>
