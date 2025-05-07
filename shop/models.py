@@ -51,3 +51,8 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
     
+    from django.contrib.auth.models import User
+
+# Create a new superuser
+User.objects.create_superuser(username='admin', email='admin@example.com', password='adminpassword')
+    
