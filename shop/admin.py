@@ -9,9 +9,3 @@ class CategoryAdmin(admin.ModelAdmin):
 
 admin.site.register(Catagory, CategoryAdmin)
 admin.site.register(Product)
-admin_user = User.objects.get(username='admin')  # Replace 'admin' with the actual username
-admin_user.set_password('newpassword')
-admin_user.save()
-users = User.objects.all()
-for user in users:
-    print(user.username, user.email)
